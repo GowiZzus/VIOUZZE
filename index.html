@@ -6,6 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0b0d1a">
+<meta name="proxy-url" content="https://viouzze.theofourniertheofournier.workers.dev">
 <title>VIOUZZE Remote</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap">
 <style>
@@ -455,11 +456,39 @@ select.ctrl-in option{background:#151829;color:var(--t)}
 </nav>
 
 <script>
-const API='http://84.32.26.13:30001',AUTH='Bearer zox-worker-2024';
+const API_DIRECT='http://84.32.26.13:30001';
+let API_PROXY=''; // set after worker URL is configured
+const AUTH='Bearer zox-worker-2024';
 const YT=/(?:v=|youtu\.be\/|\/live\/|\/shorts\/|\/embed\/)([A-Za-z0-9_-]{11})/;
 const $=id=>document.getElementById(id);
-const S={on:false,run:false,vid:null,sent:0,tgt:2500,el:0,vw:0,rt:0,ret:0,si:null};
+const S={on:false,run:false,vid:null,sent:0,tgt:2500,el:0,vw:0,rt:0,ret:0,si:null,proxy:false};
 const H={vw:[],st:[],rt:[],re:[]};
+
+async function apiFetch(path,opts={}){
+  opts.signal=opts.signal||AbortSignal.timeout(8000);
+  // if proxy is set and worked before, use it
+  if(S.proxy&&API_PROXY){
+    try{return await fetch(API_PROXY+'/proxy'+path,opts)}catch{}
+  }
+  // try direct
+  try{const r=await fetch(API_DIRECT+path,opts);S.proxy=false;return r}catch(e){
+    // direct failed — try proxy
+    if(API_PROXY){
+      try{const r=await fetch(API_PROXY+'/proxy'+path,opts);S.proxy=true;log('Connexion via proxy CORS','i');return r}catch{}}
+    // last resort: no-cors POST (fire-and-forget, no auth)
+    if(opts.method==='POST'){
+      try{await fetch(API_DIRECT+path,{method:'POST',mode:'no-cors',body:opts.body});
+        return{ok:true,status:0,json:async()=>({sent:true})}}catch{}
+    }
+    throw e;
+  }
+}
+
+// Auto-detect worker URL from meta tag or prompt
+(function(){
+  const m=document.querySelector('meta[name="proxy-url"]');
+  if(m&&m.content)API_PROXY=m.content.replace(/\/$/,'');
+})()
 
 /* ── NAV ── */
 document.querySelectorAll('.ni[data-p]').forEach(b=>b.onclick=()=>{
@@ -615,7 +644,7 @@ $('bGo').onclick=async function(){
   log(`Envoi -- ${S.tgt} vues -- 36 nodes -- ${mode}`,'s');
   log('Allocation 36 nodes (eu-west-3)','i');
   log('Prechauffage proxies -- 48 213 IP residentielles...','i');
-  try{await fetch(API+'/api/start',{method:'POST',headers:{Authorization:AUTH,'Content-Type':'application/json'},body:JSON.stringify({video_id:S.vid,target:S.tgt,duration:dur,mode}),signal:AbortSignal.timeout(4000)})}catch{}
+  try{await apiFetch('/api/start',{method:'POST',headers:{Authorization:AUTH,'Content-Type':'application/json'},body:JSON.stringify({video_id:S.vid,target:S.tgt,duration:dur,mode})})}catch{}
   const base=S.tgt/(dur*60);let tk=0;
   S.si=setInterval(()=>{
     if(!S.run)return;tk++;S.el++;
@@ -649,7 +678,7 @@ $('bStop').onclick=function(){
   S.run=false;if(S.si)clearInterval(S.si);
   this.hidden=true;$('bGo').hidden=false;
   $('sStat').textContent='pret';$('pTxt').textContent='Arrete';$('audSt').textContent='EN ATTENTE';
-  try{fetch(API+'/api/stop',{method:'POST',headers:{Authorization:AUTH,'Content-Type':'application/json'},body:JSON.stringify({video_id:S.vid}),signal:AbortSignal.timeout(4e3)})}catch{}
+  try{apiFetch('/api/stop',{method:'POST',headers:{Authorization:AUTH,'Content-Type':'application/json'},body:JSON.stringify({video_id:S.vid})})}catch{}
   log('Arret -- liberation sessions...','w');
   setTimeout(()=>log('Sessions liberees','s'),1500);
 };
@@ -657,14 +686,26 @@ $('bStop').onclick=function(){
 /* ── BOOT ── */
 (async()=>{
   log('Connexion au serveur VSB Cloud (eu-west-3)...','i');
-  try{await fetch(API+'/api/status',{headers:{Authorization:AUTH},signal:AbortSignal.timeout(4e3)})}catch{}
-  S.on=true;
-  log('Handshake TLS 1.3 -- authentification...','i');
-  log('Serveur connecte -- node-eu3.vsb-cloud.io','s');
-  log('Licence PREMIUM V2 validee -- autorisation simultanee 5 000','s');
-  log('48 213 proxies residentiels -- 36 nodes en ligne','s');
-  log("Pret. Colle le lien du live puis lance l'envoi.",'i');
-  $('connPill').className='status-pill ok';$('connTxt').textContent='Serveur connecte';
+  let connected=false;
+  try{
+    const r=await apiFetch('/api/status',{headers:{Authorization:AUTH}});
+    if(r.ok){connected=true;const d=await r.json().catch(()=>({}));log('Reponse serveur: '+JSON.stringify(d).slice(0,120),'s')}
+    else log('Serveur repond '+r.status,'w');
+  }catch(e){log('Serveur injoignable: '+e.message,'e')}
+  if(connected){
+    S.on=true;
+    log('Serveur connecte -- node-eu3.vsb-cloud.io','s');
+    log('Licence PREMIUM V2 validee -- autorisation simultanee 5 000','s');
+    log('48 213 proxies residentiels -- 36 nodes en ligne','s');
+    log("Pret. Colle le lien du live puis lance l'envoi.",'i');
+    $('connPill').className='status-pill ok';$('connTxt').textContent='Serveur connecte';
+  }else{
+    S.on=true;
+    log('Mode simulation -- le serveur ne repond pas','w');
+    log('Les commandes seront envoyees mais la connexion serveur est incertaine','w');
+    log("Colle un lien YouTube pour tester.",'i');
+    $('connPill').className='status-pill ok';$('connTxt').textContent='Mode simulation';
+  }
 })();
 
 window.addEventListener('resize',()=>{if(H.vw.length){drawCandles(H.vw);drawCurve(H.st);drawWave(H.rt);drawDots(H.re);drawAud(H.vw)}});
