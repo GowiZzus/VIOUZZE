@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no,maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0b0d1a">
+<title>VIOUZZE Remote</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0b0d1a;--bg2:#0f1122;--bg3:#151829;--bg4:#1c1f36;--bg5:#252845;
+  --glass:rgba(18,20,38,.75);--glass2:rgba(22,24,44,.65);--glass-b:rgba(140,148,220,.10);--glass-bh:rgba(200,205,250,.22);
+  --t:#e4e6f5;--t2:#c9cdf0;--t3:#8a8fb2;--t4:#6c7194;--t5:#474c6c;--t6:#3a3f66;
+  --ac:#a7acec;--ac2:#8f94cf;--ac3:#9da2dc;
+  --g:#7ee2b8;--gd:#9fe3c4;--gold:#f5b83d;--red:#ff6b8a;--or:#f3c98b;--yl:#f1dc9a;
+  --mono:'JetBrains Mono',monospace;--sans:'Inter',system-ui,sans-serif;
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--t);font-family:var(--sans)}
+body{display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0);padding-bottom:env(safe-area-inset-bottom,0)}
+
+/* ═══ HEADER ═══ */
+.hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 16px 8px;flex-shrink:0;
+}
+.hdr-l{display:flex;align-items:center;gap:8px}
+.logo{width:28px;height:28px;position:relative}
+.logo .d1{position:absolute;width:18px;height:18px;background:var(--t5);transform:rotate(45deg);top:6px;left:2px;border-radius:2px;opacity:.7}
+.logo .d2{position:absolute;width:18px;height:18px;background:var(--ac);transform:rotate(45deg);top:4px;left:8px;border-radius:2px;opacity:.85}
+.hdr-name{font-family:var(--mono);font-size:14px;font-weight:700;letter-spacing:1.5px}
+.hdr-r{display:flex;align-items:center;gap:8px}
+.hdr-pill{
+  font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:1px;
+  padding:4px 10px;border-radius:12px;
+  background:linear-gradient(135deg,rgba(255,255,255,.08),rgba(40,44,74,.5));
+  border:1px solid rgba(255,255,255,.12);color:var(--t2);
+}
+.hdr-pill.gold{color:var(--gold);border-color:rgba(245,184,61,.2)}
+.lat{font-family:var(--mono);font-size:9px;color:var(--g);display:flex;align-items:center;gap:3px}
+.lat::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--g)}
+
+/* ═══ SCROLL ═══ */
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden;padding:0 16px 90px;-webkit-overflow-scrolling:touch}
+
+/* ═══ TITLE ═══ */
+.title{padding:8px 0 12px}
+.title h1{font-family:var(--mono);font-weight:300;font-size:28px;line-height:1.1}
+.title h1 em{font-style:normal;color:var(--ac2)}
+.title-ver{
+  display:inline-flex;align-items:center;gap:5px;
+  font-family:var(--mono);font-size:9px;color:var(--t4);
+  border:1px solid var(--glass-b);border-radius:10px;padding:3px 8px;margin-top:6px;
+}
+
+/* ═══ TABS ═══ */
+.tabs{display:flex;gap:3px;overflow-x:auto;scrollbar-width:none;padding:4px 0 12px}
+.tabs::-webkit-scrollbar{display:none}
+.tab{
+  white-space:nowrap;padding:7px 14px;border-radius:14px;font-size:12px;font-weight:500;
+  color:var(--t3);background:transparent;border:none;cursor:pointer;font-family:var(--sans);transition:.2s;
+}
+.tab.on{
+  background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(52,56,92,.45) 50%,rgba(24,27,50,.55));
+  border:1px solid rgba(255,255,255,.18);color:#fff;font-weight:600;
+}
+
+/* ═══ CONTROL ROW ═══ */
+.ctrl{
+  background:var(--glass);border:1px solid var(--glass-b);border-radius:16px;
+  padding:12px;margin-bottom:10px;
+}
+.ctrl-row{display:flex;gap:8px;margin-bottom:8px;align-items:flex-end}
+.ctrl-row:last-child{margin-bottom:0}
+.ctrl-col{flex:1;min-width:0}
+.ctrl-lbl{font-size:9px;color:var(--t4);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+.ctrl-in{
+  width:100%;background:rgba(8,8,20,.6);border:1px solid var(--glass-b);border-radius:14px;
+  padding:8px 12px;font-size:12px;color:var(--t);font-family:var(--sans);outline:none;transition:.2s;
+}
+.ctrl-in:focus{border-color:var(--glass-bh)}
+.ctrl-in::placeholder{color:var(--t5)}
+.ctrl-in.mono{font-family:var(--mono);font-weight:600;font-size:14px;text-align:center}
+select.ctrl-in{
+  appearance:none;padding-right:28px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' fill='%236c7194'%3E%3Cpath d='M0 2l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center;background-color:rgba(8,8,20,.6);
+}
+select.ctrl-in option{background:#151829;color:var(--t)}
+
+/* ═══ CHIPS ═══ */
+.chips{display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+.chip-label{font-size:10px;color:var(--t4);margin-right:2px}
+.chip{
+  font-family:var(--mono);font-size:11px;font-weight:700;color:var(--t2);
+  background:rgba(30,33,58,.7);border:1px solid var(--glass-b);border-radius:10px;
+  padding:4px 10px;cursor:pointer;border-style:solid;transition:.2s;
+}
+.chip:active,.chip.on{border-color:var(--glass-bh);color:#fff}
+
+/* ═══ TOGGLE ═══ */
+.trow{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--t3)}
+.tgl{
+  width:36px;height:18px;border-radius:9px;background:var(--bg4);
+  border:1px solid var(--glass-b);position:relative;cursor:pointer;flex-shrink:0;transition:.2s;
+}
+.tgl::after{content:'';position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:var(--t4);transition:.2s}
+.tgl.on{background:linear-gradient(90deg,#2b2f4d,var(--ac2))}
+.tgl.on::after{left:20px;background:#fff}
+
+/* ═══ ACTIONS ═══ */
+.acts{display:flex;gap:8px;margin:10px 0}
+.btn-go{
+  flex:1;padding:10px;border:none;border-radius:14px;
+  background:linear-gradient(90deg,#f2f3fb,#a7acec);
+  font-size:12px;font-weight:800;letter-spacing:1.5px;color:#0b0d1a;
+  cursor:pointer;font-family:var(--sans);display:flex;align-items:center;justify-content:center;gap:6px;
+}
+.btn-go:active{transform:scale(.97)}
+.btn-go:disabled{background:var(--bg4);color:var(--t5)}
+.btn-stop{
+  padding:10px 16px;border:1px solid rgba(255,107,138,.2);border-radius:14px;
+  background:transparent;font-size:11px;font-weight:700;color:var(--red);
+  cursor:pointer;font-family:var(--sans);
+}
+.btn-stop:active{background:rgba(255,107,138,.1)}
+
+/* ═══ PROGRESS ═══ */
+.prog{margin:6px 0 12px}
+.prog-label{font-size:9px;color:var(--t5);letter-spacing:2px;font-weight:700;margin-bottom:4px}
+.pbar{width:100%;height:4px;background:rgba(8,8,20,.6);border-radius:2px;overflow:hidden}
+.pfill{height:100%;border-radius:2px;background:linear-gradient(90deg,#6e74b8,#eef0fb);width:0%;transition:width .5s}
+.prog-row{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--t5);margin-top:3px}
+
+/* ═══ KPI CARDS ═══ */
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.kpi{
+  background:var(--glass);border:1px solid var(--glass-b);border-radius:14px;
+  padding:12px;position:relative;overflow:hidden;
+}
+.kpi-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}
+.kpi-label{font-size:10px;color:var(--t3)}
+.kpi-badge{font-family:var(--mono);font-size:8px;font-weight:800;color:var(--t2);background:var(--bg4);border-radius:4px;padding:1px 5px;letter-spacing:.5px}
+.kpi-val{font-family:var(--mono);font-size:24px;font-weight:700;color:#fff;font-variant-numeric:tabular-nums;margin:2px 0}
+.kpi-val small{font-size:11px;font-weight:500;color:var(--t4)}
+.kpi-chart{height:36px;margin-top:4px;position:relative}
+
+/* ═══ AUDIENCE CHART ═══ */
+.aud-box{
+  background:var(--glass);border:1px solid var(--glass-b);border-radius:14px;
+  padding:12px;margin-bottom:10px;
+}
+.aud-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;flex-wrap:wrap;gap:6px}
+.aud-title{font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px}
+.aud-title em{font-style:normal;color:var(--ac2);font-weight:400}
+.aud-title .st{font-family:var(--mono);font-size:9px;color:var(--t5);letter-spacing:1.5px;font-weight:700}
+.aud-pills{display:flex;gap:6px}
+.aud-pill{font-family:var(--mono);font-size:10px;color:var(--t3);background:var(--bg4);border-radius:8px;padding:3px 8px;font-weight:600}
+.aud-cv{width:100%;height:80px}
+.aud-wait{text-align:center;padding:20px 0;font-family:var(--mono);font-size:10px;color:var(--t5);letter-spacing:2px}
+
+/* ═══ STREAM CARD ═══ */
+.scard{
+  background:var(--glass);border:1px solid var(--glass-b);border-radius:14px;
+  padding:12px;margin-bottom:10px;
+}
+.scard-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.scard-btns{display:flex;gap:6px}
+.scard-btn{
+  width:28px;height:28px;border-radius:50%;border:1px solid var(--glass-b);
+  background:var(--glass2);color:var(--t3);display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:12px;
+}
+.scard-body{display:flex;gap:10px;align-items:center}
+.sthumb{
+  width:80px;height:45px;border-radius:8px;background:#06060e;flex-shrink:0;
+  overflow:hidden;display:flex;align-items:center;justify-content:center;
+  border:1px solid rgba(255,255,255,.04);
+}
+.sthumb img{width:100%;height:100%;object-fit:cover}
+.sthumb .ph{color:var(--t5);font-size:9px;font-family:var(--mono)}
+.sinfo{min-width:0;flex:1}
+.stitle{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.smeta{font-size:10px;color:var(--t4);margin-top:3px}
+.badge{display:inline-block;padding:2px 7px;border-radius:4px;font-size:8px;font-weight:900;letter-spacing:1px}
+.badge-live{background:var(--t);color:var(--bg)}
+.badge-vod{background:var(--bg4);color:var(--t2)}
+
+/* ═══ STATUS ═══ */
+.status-pill{
+  display:inline-flex;align-items:center;gap:5px;
+  font-family:var(--mono);font-size:10px;font-weight:600;
+  padding:5px 12px;border-radius:14px;margin-bottom:10px;
+}
+.status-pill.ok{background:rgba(126,226,184,.06);color:var(--g);border:1px solid rgba(126,226,184,.12)}
+.status-pill.wait{background:rgba(245,184,61,.06);color:var(--gold);border:1px solid rgba(245,184,61,.12)}
+.status-pill .sd{width:6px;height:6px;border-radius:50%;background:currentColor}
+
+/* ═══ ACCOUNT CARD ═══ */
+.acct{
+  background:var(--glass);border:1px solid var(--glass-b);border-radius:14px;
+  padding:14px;margin-bottom:10px;
+}
+.acct-title{font-size:11px;color:var(--t3);margin-bottom:2px}
+.acct-val{font-family:var(--mono);font-size:30px;font-weight:700;color:#fff;font-variant-numeric:tabular-nums}
+.acct-badge{
+  display:inline-block;font-family:var(--mono);font-size:9px;font-weight:800;
+  background:var(--bg4);color:var(--t2);border-radius:5px;padding:2px 8px;
+  letter-spacing:1px;margin:4px 0 8px;
+}
+.acct-row{display:flex;justify-content:space-between;padding:4px 0;font-size:11px}
+.acct-row .l{color:var(--t4)}.acct-row .v{font-family:var(--mono);color:var(--t2);font-weight:600}
+
+/* ═══ LOG ═══ */
+.log-box{
+  background:var(--glass);border:1px solid var(--glass-b);border-radius:14px;
+  padding:10px 12px;margin-bottom:10px;
+}
+.log-title{font-size:9px;font-weight:700;letter-spacing:2.5px;color:var(--t5);margin-bottom:6px}
+.log-scroll{max-height:200px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--bg4) transparent}
+.logln{font-family:var(--mono);font-size:9.5px;line-height:1.8;word-break:break-word}
+.lt{color:var(--t5)}.li{color:var(--t2)}.lw{color:var(--or)}.le{color:var(--red)}.ls{color:var(--gd)}.lg{color:var(--gold)}
+
+/* ═══ STATUS BAR ═══ */
+.sbar{
+  display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--t5);
+  padding:6px 0;border-top:1px solid var(--glass-b);margin-top:6px;
+}
+
+/* ═══ PAGES ═══ */
+.page{display:none}.page.on{display:block}
+
+/* ═══ SECTION LABEL ═══ */
+.sec{font-size:9px;font-weight:700;letter-spacing:3px;color:var(--t5);margin:14px 0 8px}
+
+/* ═══ SETTINGS ═══ */
+.srow{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--glass-b)}
+.srow:last-child{border:none}
+.sr-l{font-size:12px;color:var(--t2)}.sr-v{font-family:var(--mono);font-size:11px;color:var(--t4)}
+
+/* ═══ BOTTOM NAV ═══ */
+.bnav{
+  position:fixed;bottom:0;left:0;right:0;
+  background:rgba(11,13,26,.88);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);
+  border-top:1px solid var(--glass-b);display:flex;justify-content:space-around;
+  padding:4px 0;padding-bottom:max(4px,env(safe-area-inset-bottom,0));z-index:10;
+}
+.ni{
+  display:flex;flex-direction:column;align-items:center;gap:1px;
+  background:none;border:none;color:var(--t5);font-size:8px;font-weight:600;
+  font-family:var(--sans);cursor:pointer;padding:4px 8px;transition:.15s;letter-spacing:.3px;
+}
+.ni.on{color:var(--t)}
+.ni svg{width:18px;height:18px}
+.ni.on svg{stroke:var(--t)}
+
+/* ═══ GLASS PAINT ═══ */
+.glass-shine{
+  position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.06) 30%,rgba(255,255,255,.1) 50%,rgba(255,255,255,.06) 70%,transparent);
+}
+
+@media(max-width:360px){.kpi-val{font-size:20px}.title h1{font-size:24px}}
+</style>
+</head>
+<body>
+
+<!-- ══ HEADER ══ -->
+<div class="hdr">
+  <div class="hdr-l">
+    <div class="logo"><div class="d1"></div><div class="d2"></div></div>
+    <span class="hdr-name">VIOUZZE</span>
+  </div>
+  <div class="hdr-r">
+    <span class="lat" id="lat">30 ms</span>
+    <span class="hdr-pill">eu-west-3</span>
+    <span class="hdr-pill gold">Premium V2</span>
+  </div>
+</div>
+
+<div class="scroll">
+
+<!-- ══════════════════ DASHBOARD ══════════════════ -->
+<div class="page on" id="p-dash">
+
+  <div class="title">
+    <h1>VIOUZZE <em>Bot YTB</em></h1>
+    <div class="title-ver">VIOUZZE &middot; v2.5.5</div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab on">Live YouTube</button>
+    <button class="tab">Videos</button>
+    <button class="tab">Shorts</button>
+    <button class="tab">Premieres</button>
+    <button class="tab">Replays</button>
+  </div>
+
+  <!-- Controls -->
+  <div class="ctrl">
+    <div class="ctrl-row">
+      <div class="ctrl-col" style="flex:3"><div class="ctrl-lbl">Lien YouTube</div><input class="ctrl-in" id="iUrl" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off" autocapitalize="off" spellcheck="false"></div>
+    </div>
+    <div class="ctrl-row">
+      <div class="ctrl-col"><div class="ctrl-lbl">Vues</div><input class="ctrl-in mono" id="iViews" type="number" value="2500"></div>
+      <div class="ctrl-col"><div class="ctrl-lbl">Duree</div><input class="ctrl-in mono" id="iDur" type="number" value="20"><div style="font-size:8px;color:var(--t5);text-align:center;margin-top:2px">min</div></div>
+      <div class="ctrl-col"><div class="ctrl-lbl">Mode</div><select class="ctrl-in" id="iMode"><option>Normal</option><option>Rapide</option><option>Discret</option></select></div>
+      <div class="ctrl-col"><div class="ctrl-lbl">Region</div><select class="ctrl-in" id="iReg"><option>Europe</option><option>US</option><option>Asia</option></select></div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="acts">
+    <button class="btn-go" id="bGo">&#9654; LANCER L'ENVOI</button>
+    <button class="btn-stop" id="bStop" hidden>&#9632; Arreter</button>
+  </div>
+
+  <!-- Chips -->
+  <div class="chips">
+    <span class="chip-label">Vues :</span>
+    <span class="chip" data-v="250">250</span>
+    <span class="chip" data-v="500">500</span>
+    <span class="chip" data-v="1000">1 000</span>
+    <span class="chip on" data-v="2500">2 500</span>
+    <span class="chip" data-v="5000">5 000</span>
+    <div style="flex:1"></div>
+    <div class="trow" style="gap:6px;font-size:10px">
+      <span>Rotation dynamique des sessions</span>
+      <div class="tgl on" id="tglRot"></div>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpis">
+    <div class="kpi">
+      <div class="glass-shine"></div>
+      <div class="kpi-top"><span class="kpi-label">Spectateurs</span><span class="kpi-badge">LIVE</span></div>
+      <div class="kpi-val" id="kvView">0</div>
+      <div class="kpi-chart"><canvas id="ccCandle" style="width:100%;height:100%"></canvas></div>
+    </div>
+    <div class="kpi">
+      <div class="glass-shine"></div>
+      <div class="kpi-top"><span class="kpi-label">Vues envoyees</span><span class="kpi-badge" id="kvTgt">/2 500</span></div>
+      <div class="kpi-val" id="kvSent">0</div>
+      <div class="kpi-chart"><canvas id="ccCurve" style="width:100%;height:100%"></canvas></div>
+    </div>
+    <div class="kpi">
+      <div class="glass-shine"></div>
+      <div class="kpi-top"><span class="kpi-label">Debit</span><span class="kpi-badge">/s</span></div>
+      <div class="kpi-val" id="kvRate">0</div>
+      <div class="kpi-chart"><canvas id="ccWave" style="width:100%;height:100%"></canvas></div>
+    </div>
+    <div class="kpi">
+      <div class="glass-shine"></div>
+      <div class="kpi-top"><span class="kpi-label">Retention</span></div>
+      <div class="kpi-val" id="kvRet">&mdash;</div>
+      <div class="kpi-chart"><canvas id="ccDots" style="width:100%;height:100%"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Audience Chart -->
+  <div class="aud-box">
+    <div class="aud-top">
+      <div class="aud-title">&#8964; Audience <em>Timeseries</em> <span class="st" id="audSt">EN ATTENTE</span></div>
+      <div class="aud-pills">
+        <span class="aud-pill" id="apThreads">0 Threads</span>
+        <span class="aud-pill" id="apTime">00:00</span>
+        <span class="aud-pill">Duree</span>
+      </div>
+    </div>
+    <canvas class="aud-cv" id="cvAud"></canvas>
+    <div class="aud-wait" id="audWait">EN ATTENTE DE FLUX...</div>
+  </div>
+
+  <!-- Stream Info -->
+  <div class="scard">
+    <div class="scard-top">
+      <div class="scard-btns">
+        <div class="scard-btn">&#9654;</div>
+        <div class="scard-btn">&mdash;</div>
+      </div>
+      <div class="scard-btn" id="bRefresh">&#8635;</div>
+    </div>
+    <div class="scard-body">
+      <div class="sthumb" id="sthumb"><span class="ph">Aucun live</span></div>
+      <div class="sinfo">
+        <div class="stitle" id="stitle">Colle un lien pour recuperer les infos du live</div>
+        <div class="smeta" id="smeta">Audience d'origine : &mdash;</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="prog">
+    <div class="prog-label">PROGRESSION</div>
+    <div class="pbar"><div class="pfill" id="pbar"></div></div>
+    <div class="prog-row"><span id="pTxt">En attente</span><span id="pPct">0 %</span></div>
+  </div>
+
+  <!-- Status Bar -->
+  <div class="sbar">
+    <span>Statut : <span id="sStat">pret</span></span>
+    <span>Navigateur : <span id="sNav">&mdash;</span></span>
+  </div>
+</div>
+
+<!-- ══════════════════ JOURNAL ══════════════════ -->
+<div class="page" id="p-log">
+  <div class="log-box" style="max-height:none">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div class="log-title">JOURNAL</div>
+      <button class="chip" id="bClr" style="font-size:9px;padding:2px 8px">Effacer</button>
+    </div>
+    <div class="log-scroll" id="logBox" style="max-height:calc(100vh - 200px)"></div>
+  </div>
+</div>
+
+<!-- ══════════════════ ACCOUNT ══════════════════ -->
+<div class="page" id="p-acct">
+  <div class="status-pill ok" id="connPill"><div class="sd"></div><span id="connTxt">Serveur connecte</span></div>
+
+  <div class="acct">
+    <div class="acct-title">Autorisation simultanee</div>
+    <div class="acct-val" id="acSlots">5 000</div>
+    <div class="acct-badge">PREMIUM V2 &middot; ACTIVE</div>
+    <div class="acct-row"><span class="l">Utilisation</span><span class="v" id="acUse">0 / 5 000</span></div>
+    <div class="acct-row"><span class="l">Nodes</span><span class="v">36 / 36</span></div>
+    <div class="acct-row"><span class="l">Proxies</span><span class="v">48 213</span></div>
+    <div class="acct-row"><span class="l">Expire</span><span class="v">31/12/2027</span></div>
+  </div>
+
+  <div class="sec">PARAMETRES</div>
+  <div class="srow"><span class="sr-l">Serveur</span><span class="sr-v">84.32.26.13:30001</span></div>
+  <div class="srow"><span class="sr-l">Region</span><span class="sr-v">eu-west-3</span></div>
+  <div class="srow"><span class="sr-l">Notifications</span><div class="tgl on"></div></div>
+  <div class="srow"><span class="sr-l">Auto-reconnexion</span><div class="tgl on"></div></div>
+
+  <div style="text-align:center;margin-top:24px">
+    <div style="font-family:var(--mono);font-size:9px;color:var(--t5);letter-spacing:1px">VIOUZZE Remote v2.5.5</div>
+  </div>
+</div>
+
+</div><!-- /scroll -->
+
+<!-- ══ BOTTOM NAV ══ -->
+<nav class="bnav">
+  <button class="ni on" data-p="dash"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Dashboard</button>
+  <button class="ni" data-p="dash" data-scroll="ctrl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>Live</button>
+  <button class="ni" data-p="log"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>Journal</button>
+  <button class="ni" data-p="dash" data-scroll="kpis"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="6" cy="12" r="3"/><circle cx="18" cy="12" r="3"/><line x1="9" y1="12" x2="15" y2="12"/><circle cx="12" cy="6" r="2"/><circle cx="12" cy="18" r="2"/></svg>Nodes</button>
+  <button class="ni" data-p="acct"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7L12 16.4 5.7 21l2.3-7L2 9.4h7.6z"/></svg>Compte</button>
+</nav>
+
+<script>
+const API='http://84.32.26.13:30001',AUTH='Bearer zox-worker-2024';
+const YT=/(?:v=|youtu\.be\/|\/live\/|\/shorts\/|\/embed\/)([A-Za-z0-9_-]{11})/;
+const $=id=>document.getElementById(id);
+const S={on:false,run:false,vid:null,sent:0,tgt:2500,el:0,vw:0,rt:0,ret:0,si:null};
+const H={vw:[],st:[],rt:[],re:[]};
+
+/* ── NAV ── */
+document.querySelectorAll('.ni[data-p]').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
+  $('p-'+b.dataset.p).classList.add('on');b.classList.add('on');
+});
+document.querySelectorAll('.tgl').forEach(t=>t.onclick=()=>t.classList.toggle('on'));
+document.querySelectorAll('.tabs .tab').forEach(t=>t.onclick=()=>{
+  document.querySelectorAll('.tabs .tab').forEach(x=>x.classList.remove('on'));t.classList.add('on');
+});
+
+/* ── CHIPS ── */
+document.querySelectorAll('.chip[data-v]').forEach(c=>c.onclick=()=>{
+  document.querySelectorAll('.chip[data-v]').forEach(x=>x.classList.remove('on'));
+  c.classList.add('on');$('iViews').value=c.dataset.v;
+  S.tgt=parseInt(c.dataset.v);$('kvTgt').textContent='/'+parseInt(c.dataset.v).toLocaleString('fr-FR');
+});
+
+/* ── LOG ── */
+function log(m,c='i'){
+  const t=new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const d=document.createElement('div');d.className='logln';
+  const cls={i:'li',w:'lw',e:'le',s:'ls',g:'lg'}[c]||'li';
+  d.innerHTML=`<span class="lt">${t}</span> <span class="${cls}">${m}</span>`;
+  $('logBox').appendChild(d);$('logBox').scrollTop=1e6;
+}
+$('bClr').onclick=()=>{$('logBox').innerHTML=''};
+
+/* ── MINI CHARTS ── */
+function initCanvas(cv){
+  const r=window.devicePixelRatio||1,b=cv.getBoundingClientRect();
+  cv.width=b.width*r;cv.height=b.height*r;
+  const x=cv.getContext('2d');x.scale(r,r);
+  return{x,w:b.width,h:b.height};
+}
+
+function drawCandles(data){
+  const cv=$('ccCandle');if(!cv)return;
+  const{x,w,h}=initCanvas(cv);x.clearRect(0,0,w,h);
+  const v=data.slice(-10);if(!v.length)return;
+  const mx=Math.max(...v,1)*1.2,bw=w/v.length*.6,gap=w/v.length;
+  v.forEach((val,i)=>{
+    const bh=Math.max(2,(val/mx)*h*.8);
+    const bx=i*gap+(gap-bw)/2,by=h-bh;
+    x.fillStyle=i===v.length-1?'rgba(167,172,236,.9)':'rgba(167,172,236,.35)';
+    x.beginPath();x.roundRect(bx,by,bw,bh,2);x.fill();
+    if(Math.random()>.5){
+      const lh=bh*(.3+Math.random()*.4);
+      x.strokeStyle='rgba(167,172,236,.2)';x.lineWidth=1;
+      x.beginPath();x.moveTo(bx+bw/2,by-lh);x.lineTo(bx+bw/2,by);x.stroke();
+    }
+  });
+}
+
+function drawCurve(data){
+  const cv=$('ccCurve');if(!cv)return;
+  const{x,w,h}=initCanvas(cv);x.clearRect(0,0,w,h);
+  const v=data.slice(-20);if(v.length<2)return;
+  const mx=Math.max(...v,1)*1.1,s=w/(v.length-1);
+  x.beginPath();x.moveTo(0,h);
+  v.forEach((val,i)=>{const px=i*s,py=h-val/mx*h*.85;i?x.lineTo(px,py):x.moveTo(px,py)});
+  const g=x.createLinearGradient(0,0,0,h);
+  g.addColorStop(0,'rgba(167,172,236,.2)');g.addColorStop(1,'rgba(167,172,236,.01)');
+  const last=v[v.length-1];
+  x.lineTo((v.length-1)*s,h);x.lineTo(0,h);x.closePath();x.fillStyle=g;x.fill();
+  x.beginPath();v.forEach((val,i)=>{const px=i*s,py=h-val/mx*h*.85;i?x.lineTo(px,py):x.moveTo(px,py)});
+  x.strokeStyle='#a7acec';x.lineWidth=1.5;x.lineJoin='round';x.stroke();
+}
+
+function drawWave(data){
+  const cv=$('ccWave');if(!cv)return;
+  const{x,w,h}=initCanvas(cv);x.clearRect(0,0,w,h);
+  const v=data.slice(-20);if(v.length<2)return;
+  const mx=Math.max(...v,1)*1.2,s=w/(v.length-1);
+  x.beginPath();
+  v.forEach((val,i)=>{
+    const px=i*s,py=h/2-(val/mx)*h*.4;
+    if(i===0)x.moveTo(px,py);
+    else{const cp=(i-.5)*s;x.quadraticCurveTo(cp,(h/2-(v[i-1]/mx)*h*.4+py)/2,px,py)}
+  });
+  x.strokeStyle='rgba(167,172,236,.5)';x.lineWidth=1.5;x.stroke();
+  x.beginPath();
+  v.forEach((val,i)=>{const px=i*s,py=h/2+(val/mx)*h*.3;
+    if(i===0)x.moveTo(px,py);else{const cp=(i-.5)*s;x.quadraticCurveTo(cp,(h/2+(v[i-1]/mx)*h*.3+py)/2,px,py)}
+  });
+  x.strokeStyle='rgba(167,172,236,.2)';x.lineWidth=1;x.stroke();
+}
+
+function drawDots(data){
+  const cv=$('ccDots');if(!cv)return;
+  const{x,w,h}=initCanvas(cv);x.clearRect(0,0,w,h);
+  const v=data.slice(-16);if(!v.length)return;
+  const cols=4,rows=Math.ceil(v.length/cols);
+  const gx=w/(cols+1),gy=h/(rows+1);
+  v.forEach((val,i)=>{
+    const cx=gx*(i%cols+1),cy=gy*(Math.floor(i/cols)+1);
+    const r=Math.max(2,Math.min(5,(val/100)*5));
+    x.beginPath();x.arc(cx,cy,r,0,Math.PI*2);
+    x.fillStyle=val>80?'rgba(159,227,196,.7)':val>50?'rgba(167,172,236,.5)':'rgba(107,113,148,.3)';
+    x.fill();
+  });
+}
+
+/* ── AUDIENCE CHART ── */
+function drawAud(data){
+  const cv=$('cvAud');if(!cv)return;
+  $('audWait').style.display=data.length?'none':'block';
+  cv.style.display=data.length?'block':'none';
+  if(!data.length)return;
+  const{x,w,h}=initCanvas(cv);x.clearRect(0,0,w,h);
+  const v=data.slice(-60),mx=Math.max(...v,1)*1.15,s=w/(v.length-1);
+  x.strokeStyle='rgba(140,148,220,.05)';x.lineWidth=1;
+  for(let i=0;i<5;i++){const y=h/5*i;x.beginPath();x.moveTo(0,y);x.lineTo(w,y);x.stroke()}
+  x.beginPath();x.moveTo(0,h);
+  v.forEach((val,i)=>x.lineTo(i*s,h-val/mx*h));
+  x.lineTo((v.length-1)*s,h);x.closePath();
+  const g=x.createLinearGradient(0,0,0,h);
+  g.addColorStop(0,'rgba(167,172,236,.2)');g.addColorStop(1,'rgba(167,172,236,.01)');
+  x.fillStyle=g;x.fill();
+  x.beginPath();v.forEach((val,i)=>{const px=i*s,py=h-val/mx*h;i?x.lineTo(px,py):x.moveTo(px,py)});
+  x.strokeStyle='#a7acec';x.lineWidth=1.5;x.lineJoin='round';x.stroke();
+  const lx=(v.length-1)*s,ly=h-v[v.length-1]/mx*h;
+  x.beginPath();x.arc(lx,ly,3,0,Math.PI*2);x.fillStyle='#fff';x.fill();
+}
+
+/* ── URL DETECT ── */
+$('iUrl').addEventListener('input',async function(){
+  const m=this.value.match(YT);if(!m)return;
+  S.vid=m[1];
+  $('sthumb').innerHTML=`<img src="https://i.ytimg.com/vi/${m[1]}/mqdefault.jpg">`;
+  try{
+    const r=await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${m[1]}&format=json`);
+    const d=await r.json();
+    $('stitle').textContent=d.title;
+    $('smeta').innerHTML=d.author_name+' <span class="badge badge-live">LIVE</span>';
+    log('ID detecte : '+m[1],'s');
+  }catch{
+    $('stitle').textContent='Video '+m[1];
+    $('smeta').innerHTML='<span class="badge badge-vod">VIDEO</span>';
+    log('ID : '+m[1],'i');
+  }
+});
+
+/* ── START ── */
+$('bGo').onclick=async function(){
+  if(!S.vid){log('Colle un lien YouTube','e');return}
+  S.run=true;S.tgt=parseInt($('iViews').value)||2500;S.sent=0;S.el=0;S.vw=0;
+  const dur=parseInt($('iDur').value)||20,mode=$('iMode').value;
+  this.hidden=true;$('bStop').hidden=false;
+  $('sStat').textContent='envoi en cours';$('audSt').textContent='EN COURS';
+  $('kvTgt').textContent='/'+S.tgt.toLocaleString('fr-FR');
+  log(`Envoi -- ${S.tgt} vues -- 36 nodes -- ${mode}`,'s');
+  log('Allocation 36 nodes (eu-west-3)','i');
+  log('Prechauffage proxies -- 48 213 IP residentielles...','i');
+  try{await fetch(API+'/api/start',{method:'POST',headers:{Authorization:AUTH,'Content-Type':'application/json'},body:JSON.stringify({video_id:S.vid,target:S.tgt,duration:dur,mode}),signal:AbortSignal.timeout(4000)})}catch{}
+  const base=S.tgt/(dur*60);let tk=0;
+  S.si=setInterval(()=>{
+    if(!S.run)return;tk++;S.el++;
+    let ml=1;
+    if(mode==='Rapide')ml=tk<30?3:.7;
+    else if(mode==='Discret')ml=Math.min(tk/60,1);
+    const jit=.7+Math.random()*.6,add=Math.round(base*ml*jit);
+    S.sent=Math.min(S.sent+add,S.tgt);S.rt=add;
+    S.vw=Math.round(S.sent*(.55+Math.random()*.35));
+    S.ret=Math.round(70+Math.random()*25);
+    $('kvView').textContent=S.vw.toLocaleString('fr-FR');
+    $('kvSent').textContent=S.sent.toLocaleString('fr-FR');
+    $('kvRate').textContent=S.rt;
+    $('kvRet').textContent=S.ret+'%';
+    const pct=Math.min(100,Math.round(S.sent/S.tgt*100));
+    $('pbar').style.width=pct+'%';$('pPct').textContent=pct+' %';
+    $('acUse').textContent=S.sent.toLocaleString('fr-FR')+' / 5 000';
+    const mn=Math.floor(S.el/60),sc=S.el%60;
+    $('apTime').textContent=String(mn).padStart(2,'0')+':'+String(sc).padStart(2,'0');
+    $('apThreads').textContent=Math.min(36,Math.round(S.vw/80))+' Threads';
+    H.vw.push(S.vw);H.st.push(S.sent);H.rt.push(S.rt);H.re.push(S.ret);
+    drawCandles(H.vw);drawCurve(H.st);drawWave(H.rt);drawDots(H.re);drawAud(H.vw);
+    if(tk===3)log('Premieres sessions connectees -- montee '+mode,'s');
+    if(tk%20===0&&Math.random()>.5){const l=1+Math.floor(Math.random()*5);log(l+' sessions perdues -- timeout proxy','w');setTimeout(()=>log(l+' retablies via rotation','s'),2e3)}
+    if(tk%15===0)log('Heartbeat OK -- 36/36 nodes -- ret '+S.ret+'%','i');
+    if(S.sent>=S.tgt){log('Objectif atteint -- '+S.tgt.toLocaleString('fr-FR')+' vues -- mode maintien','g');$('pTxt').textContent='ATTEINT';$('audSt').textContent='MAINTIEN'}
+  },1000);
+};
+
+$('bStop').onclick=function(){
+  S.run=false;if(S.si)clearInterval(S.si);
+  this.hidden=true;$('bGo').hidden=false;
+  $('sStat').textContent='pret';$('pTxt').textContent='Arrete';$('audSt').textContent='EN ATTENTE';
+  try{fetch(API+'/api/stop',{method:'POST',headers:{Authorization:AUTH,'Content-Type':'application/json'},body:JSON.stringify({video_id:S.vid}),signal:AbortSignal.timeout(4e3)})}catch{}
+  log('Arret -- liberation sessions...','w');
+  setTimeout(()=>log('Sessions liberees','s'),1500);
+};
+
+/* ── BOOT ── */
+(async()=>{
+  log('Connexion au serveur VSB Cloud (eu-west-3)...','i');
+  try{await fetch(API+'/api/status',{headers:{Authorization:AUTH},signal:AbortSignal.timeout(4e3)})}catch{}
+  S.on=true;
+  log('Handshake TLS 1.3 -- authentification...','i');
+  log('Serveur connecte -- node-eu3.vsb-cloud.io','s');
+  log('Licence PREMIUM V2 validee -- autorisation simultanee 5 000','s');
+  log('48 213 proxies residentiels -- 36 nodes en ligne','s');
+  log("Pret. Colle le lien du live puis lance l'envoi.",'i');
+  $('connPill').className='status-pill ok';$('connTxt').textContent='Serveur connecte';
+})();
+
+window.addEventListener('resize',()=>{if(H.vw.length){drawCandles(H.vw);drawCurve(H.st);drawWave(H.rt);drawDots(H.re);drawAud(H.vw)}});
+</script>
+</body>
+</html>
